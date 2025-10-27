@@ -26,7 +26,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZizQVe0yyXAnVt_0B4WIdJ4WILWDxDROJAOrqdEX1QAWZUqnVoFbrNrAddpnGDt7t8w/exec"; // cole aqui a sua URL
+const WEB_APP_URL = "/.netlify/functions/send-lead"; // cole aqui a sua URL
 
 const Index = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -43,41 +43,21 @@ const Index = () => {
 
   const onSubmit = async (data: FormData) => {
     try {
-      // Monta body como x-www-form-urlencoded (evita preflight CORS)
-      const body = new URLSearchParams({
-        name: data.name,
-        phone: data.phone,
-        email: data.email,
-      }).toString();
-
-      const res = await fetch(WEB_APP_URL, {
+      await fetch(WEB_APP_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        },
-        body,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          name: data.name,
+          phone: data.phone,
+          email: data.email,
+        }),
       });
-
-      // Em alguns cenários o Apps Script retorna 200 sem body JSON — tratamos os dois casos:
-      let ok = true;
-      try {
-        const json = await res.json();
-        ok = json?.ok ?? res.ok;
-      } catch {
-        ok = res.ok;
-      }
-      if (!ok) throw new Error("Erro no Apps Script");
 
       setIsSubmitted(true);
-      toast({
-        title: "Sucesso!",
-        description: "Seus dados foram enviados com sucesso.",
-      });
+      toast({ title: "Sucesso!", description: "Seus dados foram enviados com sucesso." });
 
-      setTimeout(() => {
-        setIsSubmitted(false);
-        reset();
-      }, 3000);
+      // Não reseta nem volta para o formulário
+      // (remova qualquer setTimeout que te leve de volta)
     } catch (error) {
       toast({
         title: "Erro",
@@ -202,7 +182,7 @@ const Index = () => {
                 Tudo Certo!
               </h3>
               <p className="text-foreground/80">
-                Nossa aula vai acontecer dia 13/11. Te aguardo!
+                Nossa aula vai acontecer dia 13/11.<br></br>Te aguardo!
               </p>
             </div>
           )}
